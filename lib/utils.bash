@@ -42,6 +42,15 @@ get_arch() {
 	esac
 }
 
+get_ext() {
+	local platform="$1"
+	case "$platform" in
+	linux) echo "tar.gz" ;;
+	darwin) echo "zip" ;;
+	*) fail "Unsupported platform: $platform" ;;
+	esac
+}
+
 list_github_tags() {
 	git ls-remote --tags --refs "$GH_REPO" |
 		grep -o 'refs/tags/.*' | cut -d/ -f3- |
@@ -65,13 +74,14 @@ resolve_version() {
 }
 
 download_release() {
-	local version filename url platform arch
+	local version filename url platform arch ext
 	version="$(resolve_version "$1")"
 	filename="$2"
 	platform="$(get_platform)"
 	arch="$(get_arch)"
+	ext="$(get_ext "$platform")"
 
-	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${platform}-${arch}.tar.gz"
+	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${platform}-${arch}.${ext}"
 
 	echo "* Downloading $TOOL_NAME release $version ($platform-$arch)..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"

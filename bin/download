@@ -10,13 +10,25 @@ source "${plugin_dir}/lib/utils.bash"
 
 mkdir -p "$ASDF_DOWNLOAD_PATH"
 
-release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.tar.gz"
+platform="$(get_platform)"
+ext="$(get_ext "$platform")"
+release_file="$ASDF_DOWNLOAD_PATH/$TOOL_NAME-$ASDF_INSTALL_VERSION.$ext"
 
-# Download tar.gz file to the download directory
+# Download release file to the download directory
 download_release "$ASDF_INSTALL_VERSION" "$release_file"
 
-# Extract contents of tar.gz file into the download directory (flat binary, no strip needed)
-tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+# Extract contents into the download directory (flat binary, no strip needed)
+case "$ext" in
+tar.gz)
+	tar -xzf "$release_file" -C "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+	;;
+zip)
+	unzip -o "$release_file" -d "$ASDF_DOWNLOAD_PATH" || fail "Could not extract $release_file"
+	;;
+*)
+	fail "Unknown archive format: $ext"
+	;;
+esac
 
-# Remove the tar.gz file since we don't need to keep it
+# Remove the archive file since we don't need to keep it
 rm "$release_file"
