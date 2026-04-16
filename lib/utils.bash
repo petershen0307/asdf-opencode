@@ -53,9 +53,20 @@ list_all_versions() {
 	list_github_tags
 }
 
+resolve_version() {
+	local version="$1"
+	if [ "$version" = "latest" ]; then
+		version="$(list_all_versions | sort_versions | tail -n1 | xargs echo)"
+	fi
+	if [ -z "$version" ]; then
+		fail "Could not resolve version"
+	fi
+	printf "%s" "$version"
+}
+
 download_release() {
 	local version filename url platform arch
-	version="$1"
+	version="$(resolve_version "$1")"
 	filename="$2"
 	platform="$(get_platform)"
 	arch="$(get_arch)"
